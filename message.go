@@ -36,13 +36,14 @@ func getEmlMail(file string) (*mail.Message, error) {
 }
 
 func getDefaultMail() (*mail.Message, error) {
-	msg := `Date: Mon, 23 Jun 2015 11:40:36 -0400
-	From: RobotFrom <from@example.com>
-	To: RobotTo <to@example.com>
-	Subject: Test Mail
-	
-	Message body
-	`
+	msg := "Date: Mon, 23 Jun 2015 11:40:36 -0400\n" +
+		"From: RobotFrom <From@example.com>\n" +
+		"To: RobotTo <To@example.com>\n" +
+		"Subject: Gophers at Gophercon\n" +
+		"\n" +
+		"Message body\n" +
+		"\n"
+
 	r := strings.NewReader(msg)
 	return mail.ReadMessage(r)
 }

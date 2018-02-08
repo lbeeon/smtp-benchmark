@@ -168,19 +168,19 @@ func main() {
 	}
 
 	if len(*fEmlFile) > 0 {
-		msg, err = getArfMail(*fEmlFile)
+		msg, err = getEmlMail(*fEmlFile)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalln("Arf", err)
 		}
 	} else if len(*fArfFile) > 0 {
 		msg, err = getArfMail(*fArfFile)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalln("Arf", err)
 		}
 	} else {
 		msg, err = getDefaultMail()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalln("Default", err)
 		}
 	}
 
