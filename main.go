@@ -178,7 +178,10 @@ func main() {
 			log.Fatal(err)
 		}
 	} else {
-		msg, _ = getDefaultMail()
+		msg, err = getDefaultMail()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	fmt.Printf(`
