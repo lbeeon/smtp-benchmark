@@ -1,14 +1,18 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"math/rand"
+	"net/mail"
 	"net/smtp"
 	"os"
 	"time"
 )
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 var (
 	fWorker  = flag.Int("workers", 1, "Numbers of workers")
@@ -17,13 +21,26 @@ var (
 	// else send the periods
 	fsendDuration = flag.Int("seconds", -1, "")
 	fHost         = flag.String("host", "", "Target MAT")
+	fEmlFile      = flag.String("eml", "", "EML file")
+	fArfFile      = flag.String("arf", "", "ARF file")
+	msg           = &mail.Message{}
 )
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
 
 func init() {
 	flag.IntVar(fWorker, "w", 1, "Numbers of workers")
 	flag.IntVar(fSendNum, "n", 1, "Numbers of mails")
 	flag.IntVar(fsendDuration, "s", -1, "")
 	flag.StringVar(fHost, "h", "", "")
+	flag.StringVar(fEmlFile, "e", "", "")
+	flag.StringVar(fArfFile, "f", "", "")
 }
 
 func sendMail(host string) int {
@@ -33,19 +50,34 @@ func sendMail(host string) int {
 		return 0
 	}
 	defer c.Quit()
-	c.Mail("sender@example.org")
-	c.Rcpt("recipient@example.net")
+	c.Mail(msg.Header.Get("From"))
+	// c.Mail("sender@example.org")
+
+	rcptList, err := mail.ParseAddressList(msg.Header.Get("To"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, v := range rcptList {
+		c.Rcpt(v.Address)
+	}
+
+	// c.Rcpt("recipient@example.net")
 	// Send the email body.
 	wc, err := c.Data()
 	if err != nil {
 		log.Println(err)
 		return 0
 	}
-	buf := bytes.NewBufferString("This is the email body. \n.")
-	if _, err = buf.WriteTo(wc); err != nil {
+	// buf := bytes.NewBufferString("This is the email body. \n.")
+	if _, err = io.Copy(wc, msg.Body); err != nil {
 		log.Println(err)
 		return 0
 	}
+	// if _, err = buf.WriteTo(wc); err != nil {
+	// 	log.Println(err)
+	// 	return 0
+	// }
 	wc.Close()
 	defer c.Quit()
 	return 1
@@ -128,11 +160,27 @@ func exec(worker int, nums int, seconds int, host string) {
 }
 
 func main() {
+	var err error
 	flag.Parse()
 	if len(*fHost) == 0 {
 		log.Println("Please provide host")
 		os.Exit(0)
 	}
+
+	if len(*fEmlFile) > 0 {
+		msg, err = getArfMail(*fEmlFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if len(*fArfFile) > 0 {
+		msg, err = getArfMail(*fArfFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		msg, _ = getDefaultMail()
+	}
+
 	fmt.Printf(`
 		Host: %s,
 		Thread: %d,
