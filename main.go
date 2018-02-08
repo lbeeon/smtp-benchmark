@@ -23,7 +23,7 @@ var (
 	fHost         = flag.String("host", "", "Target MAT")
 	fEmlFile      = flag.String("eml", "", "EML file")
 	fArfFile      = flag.String("arf", "", "ARF file")
-	msg           = &mail.Message{}
+	msg           *mail.Message
 )
 
 func RandStringBytes(n int) string {
