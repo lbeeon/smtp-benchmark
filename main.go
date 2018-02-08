@@ -22,7 +22,6 @@ var (
 	fsendDuration = flag.Int("seconds", -1, "")
 	fHost         = flag.String("host", "", "Target MAT")
 	fEmlFile      = flag.String("eml", "", "EML file")
-	fArfFile      = flag.String("arf", "", "ARF file")
 	msg           *mail.Message
 )
 
@@ -40,7 +39,6 @@ func init() {
 	flag.IntVar(fsendDuration, "s", -1, "")
 	flag.StringVar(fHost, "h", "", "")
 	flag.StringVar(fEmlFile, "e", "", "")
-	flag.StringVar(fArfFile, "f", "", "")
 }
 
 func sendMail(host string) int {
@@ -169,11 +167,6 @@ func main() {
 
 	if len(*fEmlFile) > 0 {
 		msg, err = getEmlMail(*fEmlFile)
-		if err != nil {
-			log.Fatalln("Arf", err)
-		}
-	} else if len(*fArfFile) > 0 {
-		msg, err = getArfMail(*fArfFile)
 		if err != nil {
 			log.Fatalln("Arf", err)
 		}
