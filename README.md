@@ -7,7 +7,7 @@ go get -u github.com/lbeeon/smtp-benchmark
 ### Parameter
 
 |  option  |  default  |  require  |  Description |
-|----------|:-------------:|------:|------:|
+|----------|-------------|------|------|
 | --host/ -h |  n/a | True | Target MTA. |
 | --workers/ -w |  1 | False | Numbers of works. |
 | --nums/ -n |  1 | False | Numbers of mails. |
