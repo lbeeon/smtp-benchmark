@@ -1,4 +1,4 @@
-# smtp-benchmark
+# Smtp Benchmark Tool
 
 ### Install 
 ```

@@ -40,7 +40,6 @@ func sendMail(host string) int {
 	}
 	defer c.Quit()
 	c.Mail(msg.Header.Get("From"))
-	// c.Mail("sender@example.org")
 
 	rcptList, err := mail.ParseAddressList(msg.Header.Get("To"))
 	if err != nil {
@@ -51,22 +50,17 @@ func sendMail(host string) int {
 		c.Rcpt(v.Address)
 	}
 
-	// c.Rcpt("recipient@example.net")
 	// Send the email body.
 	wc, err := c.Data()
 	if err != nil {
 		log.Println(err)
 		return 0
 	}
-	// buf := bytes.NewBufferString("This is the email body. \n.")
+
 	if _, err = io.Copy(wc, msg.Body); err != nil {
 		log.Println(err)
 		return 0
 	}
-	// if _, err = buf.WriteTo(wc); err != nil {
-	// 	log.Println(err)
-	// 	return 0
-	// }
 	wc.Close()
 	defer c.Quit()
 	return 1
