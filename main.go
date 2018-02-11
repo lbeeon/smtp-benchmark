@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"net/mail"
 	"net/smtp"
 	"os"
 	"time"
 )
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 var (
 	fWorker  = flag.Int("workers", 1, "Numbers of workers")
@@ -20,23 +17,17 @@ var (
 	// if seconds == -1 ref nums
 	// else send the periods
 	fsendDuration = flag.Int("seconds", -1, "")
+	fBodySize     = flag.Int("size", 1, "")
 	fHost         = flag.String("host", "", "Target MAT")
 	fEmlFile      = flag.String("eml", "", "EML file")
 	msg           *mail.Message
 )
 
-func RandStringBytes(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
-}
-
 func init() {
 	flag.IntVar(fWorker, "w", 1, "Numbers of workers")
 	flag.IntVar(fSendNum, "n", 1, "Numbers of mails")
 	flag.IntVar(fsendDuration, "s", -1, "")
+	flag.IntVar(fBodySize, "b", 1, "")
 	flag.StringVar(fHost, "h", "", "")
 	flag.StringVar(fEmlFile, "e", "", "")
 }
@@ -117,10 +108,14 @@ func resultCollect(result chan int, start int64, seconds int64, nums int) {
 	}
 	e := time.Now()
 	end := e.Unix()
-	fmt.Println("End:", e)
-	fmt.Println("Total Success:", countSuccess)
-	fmt.Println("Total Failure:", countFail)
-	fmt.Println("Throughput:", float32(countSuccess)/float32(end-start))
+
+	fmt.Printf(`
+		End: %s,
+		Total Success: %d,
+		Total Failure: %d,
+		Throughput: %f 
+	`, e, countSuccess, countFail, float32(countSuccess)/float32(end-start))
+
 	os.Exit(1)
 }
 
@@ -143,7 +138,10 @@ func exec(worker int, nums int, seconds int, host string) {
 
 	s := time.Now()
 	start := s.Unix()
-	fmt.Println("Start From:", s)
+
+	fmt.Printf(`
+		Start From: %s`, s)
+
 	go resultCollect(done, start, int64(seconds), nums)
 
 	for i := 0; i < worker; i++ {
@@ -168,12 +166,12 @@ func main() {
 	if len(*fEmlFile) > 0 {
 		msg, err = getEmlMail(*fEmlFile)
 		if err != nil {
-			log.Fatalln("Arf", err)
+			log.Fatalln("Eml:", err)
 		}
 	} else {
-		msg, err = getDefaultMail()
+		msg, err = getDefaultMail(*fBodySize)
 		if err != nil {
-			log.Fatalln("Default", err)
+			log.Fatalln("Default:", err)
 		}
 	}
 
@@ -181,8 +179,10 @@ func main() {
 		Host: %s,
 		Thread: %d,
 		Numbers: %d,
-		Periods: %d
+		Periods: %d,
+
 		`, *fHost, *fWorker, *fSendNum, *fsendDuration)
-	// fmt.Println(*fHost, *fWorker, *fSendNum, *fsendDuration, *fHost)
+	dumpMail(msg)
+
 	exec(*fWorker, *fSendNum, *fsendDuration, *fHost)
 }
